@@ -1,0 +1,209 @@
+---
+title: "Financial Times Series Analysis Lab 1"
+author: "Kelvin Nyongesa"
+date: "2023-05-11"
+output:
+  word_document: default
+  pdf_document: default
+---
+#Reading the data and converting into a data frame
+```{r}
+library(readxl)
+cbk <- read_excel('C:/Users/DELL LATITUDE E7270/Music/investingcom.xlsx')
+cbkdata<-as.ts(cbk)
+```
+
+#Create a time series plot for each exchange rate
+```{r}
+par(mfrow=c(2, 3))
+ts.plot(subset(cbkdata, select = USD),main = "USD/KES Exchange Rate",ylab = "Exchange Rate (KES)",xlab = "Date")
+
+ts.plot(subset(cbkdata, select = EURO),main = "EURO/KES Exchange Rates",ylab = "Exchange Rate (KES)",xlab = "Date")
+
+ts.plot(subset(cbkdata, select = YEN),main = "YEN/KES Exchange Rates",ylab = "Exchange Rate (KES)",xlab = "Date")
+
+ts.plot(subset(cbkdata, select = RAND),main = "RAND/KES Exchange Rates",ylab = "Exchange Rate (KES)",xlab = "Date")
+
+ts.plot(subset(cbkdata, select = POUND),main = "POUND/KES Exchange Rates",ylab = "Exchange Rate (KES)",xlab = "Date")
+
+```
+
+#Create a time series plot for all exchange rates
+```{r}
+# create a vector of colors to match the plot
+colors <- c("black", "red", "blue", "green", "orange")
+
+# plot the time series
+ts.plot(subset(cbkdata, select = c(USD, POUND, EURO, YEN, RAND)),main = "Daily Average Exchange Rates",ylab = "Exchange Rate (KES)",xlab = "Date",col = colors)
+
+# add a legend to the plot
+legend("topleft",
+       legend = c("USD", "POUND", "EURO", "YEN", "RAND"),
+       col = colors,
+       lty = 1)
+
+```
+
+#Calculate simple returns for each exchange rate,Convert returns to percentages and Compute summary statistics for each exchange rate's simple returns in percentages
+```{r}
+# Calculate simple returns for each exchange rate
+ret_usd <- diff(subset(cbkdata, select = USD)) / subset(cbkdata, select = USD)[-nrow(cbkdata)]
+ret_ukp <- diff(subset(cbkdata, select = POUND)) / subset(cbkdata, select = POUND)[-nrow(cbkdata)]
+ret_eur <- diff(subset(cbkdata, select = EURO)) / subset(cbkdata, select = EURO)[-nrow(cbkdata)]
+ret_jpy <- diff(subset(cbkdata, select = YEN)) / subset(cbkdata, select = YEN)[-nrow(cbkdata)]
+ret_zar <- diff(subset(cbkdata, select = RAND)) / subset(cbkdata, select = RAND)[-nrow(cbkdata)]
+
+# Convert returns to percentages
+ret_usd_pct <- ret_usd * 100
+ret_ukp_pct <- ret_ukp * 100
+ret_eur_pct <- ret_eur * 100
+ret_jpy_pct <- ret_jpy * 100
+ret_zar_pct <- ret_zar * 100
+
+
+# Compute summary statistics for each exchange rate's simple returns in percentages
+library("fBasics")
+stats <- data.frame(
+  `US DOLLAR` = c(mean(ret_usd_pct), sd(ret_usd_pct), skewness(ret_usd_pct), kurtosis(ret_usd_pct, type = "excess"), min(ret_usd_pct), max(ret_usd_pct)),
+  `STG POUND` = c(mean(ret_ukp_pct), sd(ret_ukp_pct), skewness(ret_ukp_pct), kurtosis(ret_ukp_pct, type = "excess"), min(ret_ukp_pct), max(ret_ukp_pct)),
+  EURO = c(mean(ret_eur_pct), sd(ret_eur_pct), skewness(ret_eur_pct), kurtosis(ret_eur_pct, type = "excess"), min(ret_eur_pct), max(ret_eur_pct)),
+  YEN = c(mean(ret_jpy_pct), sd(ret_jpy_pct), skewness(ret_jpy_pct), kurtosis(ret_jpy_pct, type = "excess"), min(ret_jpy_pct), max(ret_jpy_pct)),
+  RAND = c(mean(ret_zar_pct), sd(ret_zar_pct), skewness(ret_zar_pct), kurtosis(ret_zar_pct, type = "excess"), min(ret_zar_pct), max(ret_zar_pct))
+)
+
+# Label the rows with the respective statistic names
+row.names(stats) <- c("Mean", "Standard Deviation", "Skewness", "Excess Kurtosis", "Minimum", "Maximum")
+
+# Print the summary statistics in a table
+print(stats)
+```
+
+#Transform the simple returns into log return
+```{r}
+######
+library(fBasics)
+###########################################
+# Transform the simple returns into log returns
+log_ret_usd <- log(1 + (ret_usd_pct/100))  ##We divide by 100 as they were percentages
+log_ret_ukp <- log(1 + (ret_ukp_pct/100))##And we want to avoid the NA
+log_ret_eur <- log(1 + (ret_eur_pct/100))
+log_ret_jpy <- log(1 + (ret_jpy_pct/100))
+log_ret_zar <- log(1 + (ret_zar_pct/100))
+
+
+# Compute summary statistics for each exchange rate's log returns
+log_stats <- data.frame(
+  USD = c(mean(log_ret_usd), var(log_ret_usd), skewness(log_ret_usd), kurtosis(log_ret_usd, type = "excess"), min(log_ret_usd), max(log_ret_usd)),
+  UKP = c(mean(log_ret_ukp), var(log_ret_ukp), skewness(log_ret_ukp), kurtosis(log_ret_ukp, type = "excess"), min(log_ret_ukp), max(log_ret_ukp)),
+  EURO = c(mean(log_ret_eur), var(log_ret_eur), skewness(log_ret_eur), kurtosis(log_ret_eur, type = "excess"), min(log_ret_eur), max(log_ret_eur)),
+  YEN = c(mean(log_ret_jpy), var(log_ret_jpy), skewness(log_ret_jpy), kurtosis(log_ret_jpy, type = "excess"), min(log_ret_jpy), max(log_ret_jpy)),
+  RAND = c(mean(log_ret_zar), var(log_ret_zar), skewness(log_ret_zar), kurtosis(log_ret_zar, type = "excess"), min(log_ret_zar), max(log_ret_zar))
+)
+
+# Label the rows with the respective statistic names
+row.names(log_stats) <- c("Mean", "Variance", "Skewness", "Excess Kurtosis", "Minimum", "Maximum")
+
+# Print the summary statistics in a table
+print(log_stats)
+```
+
+#Testing log return hypothesis
+```{r}
+# Perform a two-sided t-test for each exchange rate's log returns
+t_test_usd <- t.test(log_ret_usd, mu = 0)
+t_test_ukp <- t.test(log_ret_ukp, mu = 0)
+t_test_eur <- t.test(log_ret_eur, mu = 0)
+t_test_jpy <- t.test(log_ret_jpy, mu = 0)
+t_test_zar <- t.test(log_ret_zar, mu = 0)
+
+# Extract the p-values from each t-test
+p_values <- c(t_test_usd$p.value, t_test_ukp$p.value, t_test_eur$p.value, t_test_jpy$p.value, t_test_zar$p.value)
+
+# Print the p-values
+print(p_values)
+```
+conclusion
+Since all of the p-values are greater than 0.05, we fail to reject the null hypothesis at the 5% significance level. This means that there is not enough evidence to conclude that the mean log return of any of the exchange rates is statistically different from zero. However, it is important to note that the absence of evidence for a difference does not necessarily imply evidence of absence of a difference. Therefore, further research may be needed to draw a more definitive conclusion.
+
+#Plotting the Histogram of daily simple and log returns of the above data. Compare them with normal distributions that have the same mean and standard deviation.
+```{r}
+##histogram plot
+##Calculate the mean and standard deviation of the simple and log returns:
+
+simple_returns<-c(ret_usd_pct,ret_ukp_pct,ret_eur_pct,ret_jpy_pct,ret_zar_pct)
+log_returns<- c(log_ret_usd,log_ret_ukp,log_ret_eur,log_ret_jpy,log_ret_zar )
+mean_simple <- mean(simple_returns)
+sd_simple <- sd(simple_returns)
+mean_log <- mean(log_returns)
+sd_log <- sd(log_returns)
+#####
+# Compute mean and standard deviation of simple and log returns
+mean_simple <- mean(simple_returns)
+sd_simple <- sd(simple_returns)
+mean_log <- mean(log_returns)
+sd_log <- sd(log_returns)
+
+par(mfrow = c(2, 2))
+
+# Histogram of daily simple returns
+hist(simple_returns, main = "Histogram of Daily Simple Returns", xlab = "Daily Simple Returns", col = "lightblue", freq = FALSE, ylim = c(0, 0.5))
+curve(dnorm(x, mean_simple, sd_simple), add = TRUE, col = "blue", lwd = 2)
+
+# Histogram of daily log returns
+hist(log_returns, main = "Histogram of Daily Log Returns", xlab = "Daily Log Returns", col = "lightblue", freq = FALSE, ylim = c(0, 3))
+curve(dnorm(x, mean_log, sd_log), add = TRUE, col = "blue", lwd = 2)
+
+# Comparison of simple returns with normal distribution
+hist(simple_returns, main = "Histogram of Daily Simple Returns", xlab = "Daily Simple Returns", col = "lightblue", freq = FALSE, ylim = c(0, 0.5))
+curve(dnorm(x, mean_simple, sd_simple), add = TRUE, col = "blue", lwd = 2)
+curve(dnorm(x, mean_simple, sd_simple), add = TRUE, col = "red", lwd = 2, lty = 2)
+
+# Comparison of log returns with normal distribution
+hist(log_returns, main = "Histogram of Daily Log Returns", xlab = "Daily Log Returns", col = "lightblue", freq = FALSE, ylim = c(0, 3))
+curve(dnorm(x, mean_log, sd_log), add = TRUE, col = "blue", lwd = 2)
+curve(dnorm(x, mean_log, sd_log), add = TRUE, col = "red", lwd = 2, lty = 2)
+
+
+```
+
+
+```{r}
+set.seed(123) # for reproducibility
+usd <- subset(cbkdata,select= USD) # extract the USD/KES exchange rate log returns from the dataframe
+usd_mean <- mean(usd) # calculate the mean of the log returns
+usd_sd <- sd(usd) # calculate the standard deviation of the log returns
+simulated_returns <- rnorm(5301, mean = usd_mean, sd = usd_sd) # generate 2500 random samples
+
+library(fBasics)
+plot(density(usd), col = "red", main = "Density Plot of USD/KES Exchange Rate Log Returns vs Simulated Returns", 
+     xlab = "Log Returns", ylab = "Density")
+lines(density(simulated_returns), col = "blue")
+legend("topright", legend = c("USD/KES", "Simulated"), col = c("red", "blue"), lty = 1)
+
+```
+
+```{r}
+#10
+library(tseries)
+# Compute the Jarque-Bera test statistic and p-value
+jbtest <- jarque.bera.test(log_returns)
+jbstat <- jbtest$jb[1]
+
+jbpval <- jbtest$p.value[1]
+
+# Print the test results
+cat("Jarque-Bera test results:\n")
+cat("Test statistic: ", jbstat, "\n")
+cat("p-value: ", jbpval, "\n")
+
+# Check if null hypothesis is rejected at 5% significance level
+if (jbpval < 0.05) {
+  cat("Null hypothesis rejected. Log returns are not normally distributed.\n")
+} else {
+  cat("Null hypothesis not rejected. Log returns may be normally distributed.\n")
+}
+
+```
+
+
+
