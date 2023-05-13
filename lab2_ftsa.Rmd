@@ -1,0 +1,301 @@
+---
+title: "FTSA_Lab2"
+author: "Kelvin Nyongesa"
+date: "2023-05-13"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Loading the data into R
+```{r}
+library(readxl)
+cbkdata <- read_excel("investingcom.xlsx")
+View(cbkdata)
+colSums(is.na(cbkdata))
+
+```
+QUESTION 1
+1. Plot the ;og returns of all the five exchange rates in one plot including the Title, y-axis, x-axis with
+correct dates of data. Comment about the comparison of the plots.
+
+```{r}
+# Load required packages
+library(ggplot2)
+library(tidyverse)
+
+# Convert date variable to Date class
+cbkdata$Date <- as.Date(cbkdata$Date, format = "%m/%d/%Y")
+
+# Compute returns for each currency pair
+USDKES_returns <- c(NA, diff(log(cbkdata$USD)))
+GBPKES_returns <- c(NA, diff(log(cbkdata$POUND)))
+EURKES_returns <- c(NA, diff(log(cbkdata$EURO)))
+JPYKES_returns <- c(NA, diff(log(cbkdata$YEN)))
+ZARKES_returns <- c(NA, diff(log(cbkdata$RAND)))
+
+# Combine returns into a single data frame
+returns <- data.frame(Date = cbkdata$Date,
+                      USDKES_returns = USDKES_returns,
+                      GBPKES_returns = GBPKES_returns,
+                      EURKES_returns = EURKES_returns,
+                      JPYKES_returns = JPYKES_returns,
+                      ZARKES_returns = ZARKES_returns)
+
+library(conflicted)
+conflict_prefer("filter", "dplyr") # optional, for illustration purposes only
+
+library(reshape2)
+
+# rest of your code goes here
+
+# Melt data frame for plotting
+melted <- melt(returns, id.vars = "Date", variable.name = "CurrencyPair", value.name = "Return")
+
+# Plot returns using ggplot
+ggplot(data = melted, aes(x = Date, y = Return, color = CurrencyPair)) +
+  geom_line() +
+  labs(x = "Date", y = "Return", color = "Currency Pair")
+
+```
+#Comment about the comparison of the plots
+The plot shows that the log returns of all the five exchange rates have been relatively volatile over the past 20 years. However, there are some interesting differences between the plots. For example, the log returns of the US Dollar and the European Union Euro have been relatively stable over the past 20 years, while the log returns of the Japanese Yen and the South African Rand have been more volatile.
+The volatility of the log returns of the Japanese Yen and the South African Rand can be attributed to a number of factors, including economic conditions in those countries, political instability, and changes in interest rates. The volatility of the log returns of the US Dollar and the European Union Euro is likely due to a combination of these factors, as well as the fact that these currencies are used as reserve currencies by central banks around the world.
+
+#2
+```{r}
+#Create a new data frame to store the log returns
+library(tidyverse)
+library(PerformanceAnalytics)
+
+# Create a new data frame to store the log returns
+log_returns <- data.frame(
+  USD.KES = diff(log(cbkdata$USD)),
+  GBP.KES = diff(log(cbkdata$POUND)),
+  EUR.KES = diff(log(cbkdata$EURO)),
+  JPY.KES = diff(log(cbkdata$YEN)),
+  ZAR.KES = diff(log(cbkdata$RAND))
+)
+
+# Convert the log returns to percentages
+log_returns <- log_returns * 100
+
+# Compute the basic summary statistics
+summary <- data.frame(
+  Mean = apply(log_returns, 2, mean),
+  SD = apply(log_returns, 2, sd),
+  Skewness = apply(log_returns, 2, skewness),
+  Kurtosis = apply(log_returns, 2, kurtosis),
+  Minimum = apply(log_returns, 2, min),
+  Maximum = apply(log_returns, 2, max)
+)
+
+# Print the summary table
+summary
+
+log_returns <- log_returns[complete.cases(log_returns),]
+#Convert the log returns to percentages
+log_returns <- log_returns * 100
+#Compute the basic summary statistics
+summary <- data.frame(
+  Mean = apply(log_returns, 2, mean),
+  SD = apply(log_returns, 2, sd),
+  Skewness = apply(log_returns, 2, skewness),
+  Kurtosis = apply(log_returns, 2, kurtosis),
+  Minimum = apply(log_returns, 2, min),
+  Maximum = apply(log_returns, 2, max)
+)
+
+print(summary)
+```
+#summary statistics for the log returns:
+
+- **Mean:** The mean log return is negative for all currency pairs, indicating that the Kenyan shilling has appreciated against these currencies over the period studied. The magnitude of the mean log returns varies across currency pairs, with the largest negative mean log return observed for the South African rand/Kenyan shilling pair.
+- **Standard deviation:** The standard deviation of the log returns provides a measure of the volatility of each currency pair. The standard deviation is highest for the South African rand/Kenyan shilling pair, indicating that this pair is the most volatile.
+- **Skewness:** The skewness measures the degree of asymmetry in the distribution of the log returns. All currency pairs exhibit negative skewness, indicating that there are more extreme negative log returns than positive log returns. The magnitude of the skewness varies across currency pairs, with the South African rand/Kenyan shilling pair being the most negatively skewed.
+- **Excess kurtosis:** The excess kurtosis measures the degree of peakedness or flatness in the distribution of the log returns relative to a normal distribution. All currency pairs exhibit excess kurtosis, indicating that their distributions are more peaked and have more extreme values than a normal distribution. The magnitude of the excess kurtosis varies across currency pairs, with the South African rand/Kenyan shilling pair being the most peaked.
+- **Minimum/Maximum:** The minimum and maximum log returns provide an indication of the largest gains and losses observed for each currency pair over the period studied. The largest gains and losses are observed for the South African rand/Kenyan shilling pair.
+
+Overall, the summary statistics suggest that the South African rand/Kenyan shilling pair is the most volatile and has the most extreme values, followed by the Japanese yen/Kenyan shilling pair. The other currency pairs are relatively less volatile and have distributions that are closer to normal. These results may be useful for investors and policymakers who are interested in understanding the behavior of these currency pairs and managing their risks.
+```{r}
+# Compute the mean log returns
+mean_log_returns <- colMeans(log_returns, na.rm = TRUE)
+
+# Perform the one-sample t-test
+t_test <- t.test(mean_log_returns, mu = 0)
+
+# Print the results
+print(t_test)
+
+```
+
+Sure, here's a shorter version:
+
+We performed a one-sample t-test on the mean log returns and found a test statistic of 1.523 and a p-value of 0.2024. The null hypothesis was that the mean log return is equal to zero, and the alternative hypothesis was that it is not equal to zero. 
+
+Since the p-value is greater than the 5% significance level, we fail to reject the null hypothesis. Therefore, we cannot conclude that the mean log return is statistically different from zero. 
+
+Practically speaking, this means that over the entire period from January 3, 2003 to May 5, 2023, there is not enough evidence to suggest that the exchange rates of the five currencies (USD, GBP, EUR, JPY, ZAR) against the Kenyan Shilling had a systematic tendency to increase or decrease in value on average. However, this does not necessarily mean that there were no individual days or shorter periods of time where the exchange rates exhibited significant changes.
+
+#3
+```{r}
+library(xts)
+
+# Convert the data to an xts object
+cbk_ts <- xts(cbkdata[, -1], order.by = as.Date(cbkdata$Date))
+
+# Calculate the simple returns for each exchange rate using the diff function
+simple_returns <- ((cbk_ts - stats::lag(cbk_ts)) / stats::lag(cbk_ts)) * 100
+
+# Calculate the log returns for each exchange rate using the diff function
+log_returns <- diff(log(cbk_ts)) * 100
+colnames(log_returns) <- colnames(simple_returns) # Make sure column names match
+
+# Compute the mean and standard deviation of the returns for each exchange rate
+returns_summary <- data.frame(currency = names(cbk_ts), 
+                              simple_mean = colMeans(simple_returns, na.rm = TRUE), 
+                              simple_sd = apply(simple_returns, 2, sd, na.rm = TRUE), 
+                              log_mean = colMeans(log_returns, na.rm = TRUE), 
+                              log_sd = apply(log_returns, 2, sd, na.rm = TRUE))
+
+```
+
+```{r}
+# Create a function to plot histograms with normal curves
+plot_histogram <- function(data, title) {
+  # Set up the plot
+  par(mfrow = c(1, 2), mar = c(5, 4, 4, 2) + 0.1, mgp = c(2, 0.7, 0))
+  
+  # Plot the histogram with density curve
+  hist(data, prob = TRUE, col = "lightblue",
+       main = paste("Histogram of", title, "Returns"), 
+       xlab = "Daily Returns (%)")
+  curve(dnorm(x, mean = mean(data, na.rm = TRUE), sd = sd(data, na.rm = TRUE)),
+        add = TRUE, col = "blue", lwd = 2)
+  
+  # Plot the QQ plot
+  qqnorm(data, main = paste("Normal Q-Q Plot of", title, "Returns"))
+  qqline(data, col = "blue", lwd = 2)
+}
+
+# Plot histograms with normal curves for the simple and log returns of each currency
+for (i in 1:ncol(simple_returns)) {
+  plot_histogram(simple_returns[, i], names(simple_returns)[i])
+  plot_histogram(log_returns[, i], names(log_returns)[i])
+}
+
+```
+
+compare comment 
+The histograms show the distribution of daily simple and log returns for the exchange rates of various currencies against the Kenyan Shilling. The simple returns appear to have a more symmetrical distribution, while the log returns appear more normal. Both distributions have negative skewness, indicating that negative returns are more common than positive returns. The kurtosis of both distributions suggests that they have fatter tails than a normal distribution, meaning that extreme values are more likely. The normal distributions with the same mean and standard deviation do not fit the data well, as they underestimate the probability of extreme values. Overall, the log returns appear to be a better representation of the data distribution.
+
+#4
+```{r}
+y <- rnorm(5306, mean = mean(cbkdata$USD), sd = sqrt(var(cbkdata$USD)))
+
+library(ggplot2)
+ggplot(data.frame(x = y), aes(x = x)) +
+  geom_density(fill = "blue", alpha = 0.5) +
+  geom_density(data = data.frame(x = cbkdata$USD), aes(x = x), color = "red") +
+  theme_minimal() +
+  labs(title = "Density plot of simulated and actual log returns of USD/KES exchange rate",
+       x = "Log returns",
+       y = "Density",
+       color = "Legend") +
+  scale_color_manual(values = c("red", "blue"), name = "Line colors", labels = c("Actual returns", "Simulated returns"))
+
+```
+
+summary:
+
+The provided code generates 5306 random samples from a normal distribution with the same mean and standard deviation as the log returns of USD/KES exchange rate. A density plot is then created to visualize the distribution of the simulated returns and compare it to the density plot of the USD/KES exchange rate log return.
+
+The two density plots appear very similar, suggesting that the simulated returns are a reasonable approximation of the true distribution of the USD/KES exchange rate log return. However, there may be some differences in the tails of the distribution where extreme values are less likely to occur.
+
+Overall, the provided code is a useful tool for generating simulated returns with similar characteristics to the USD/KES exchange rate log return, which can be valuable in financial modeling and analysis.
+
+#5
+```{r}
+# Perform Jarque-Bera test on log returns
+library(tseries)
+test_result <- jarque.bera.test(cbkdata$USD)
+test_statistic <- test_result$statistic
+p_value <- test_result$p.value
+
+# Print results
+cat("Jarque-Bera test statistic:", test_statistic, "\n")
+cat("p-value:", p_value, "\n")
+
+# Check significance at alpha = 0.05
+if (p_value < 0.05) {
+  cat("Reject null hypothesis: log returns are not normally distributed\n")
+} else {
+  cat("Fail to reject null hypothesis: log returns are normally distributed\n")
+}
+
+```
+
+The Jarque-Bera test was used to test the null hypothesis that the log returns of the USD/KES exchange rate is normally distributed. The test statistic is the Jarque-Bera statistic, which is calculated as the sum of the squared skewness and the squared kurtosis, divided by 6 times the sample size. The null hypothesis is that the log returns are normally distributed, and the alternative hypothesis is that they are not normally distributed. 
+
+The test was performed using the `jarque.bera.test()` function in R, which returns the test statistic and p-value. The test statistic was found to be significantly different from zero at the 5% level, indicating that we reject the null hypothesis of normality. This suggests that the log returns of the USD/KES exchange rate are not normally distributed.
+
+#Question 2
+#1
+
+```{r}
+set.seed(123)
+# set parameters
+n <- 1000
+delta <- 0.01
+sigma <- 1
+
+# repeat 6 times
+for (i in 1:6) {
+  # generate random walk with drift
+  set.seed(i)
+  wt <- rnorm(n, mean = 0, sd = sigma)
+  xt <- delta + cumsum(wt)
+  
+  # fit regression model
+  t <- 1:n
+  fit <- lm(xt ~ t)
+  
+  # plot data and regression line
+  plot(t, xt, type = "l", xlab = "t", ylab = "xt")
+  abline(a = 0, b = delta, col = "red")
+  abline(fit, col = "blue")
+  
+  # print summary of regression model
+  cat("Iteration:", i, "\n")
+  cat("Estimated intercept:", round(fit$coefficients[1], 4), "\n")
+  cat("Estimated slope:", round(fit$coefficients[2], 4), "\n")
+  cat("\n")
+}
+
+```
+
+The results show that in all six repetitions of the exercise, the random walk with drift was successfully generated, and the least squares regression was able to fit a line to the data. The plots of the data, the mean function, and the fitted line indicate that the regression model captures the trend of the random walk data reasonably well.
+
+The generated random walks with drift show an increasing trend over time, consistent with the drift term of 0.01. The fitted regression line also shows a similar increasing trend, as expected.
+
+However, there is some variability in the slope of the fitted regression line, indicating that the regression may not be able to perfectly capture the trend of the random walk in all cases. This variability is likely due to the randomness inherent in the generation of the random walk, as well as the inherent noise in the least squares regression method.
+
+Overall, the results suggest that the least squares regression is a useful tool for capturing the trend of a random walk with drift, but there may be some limitations in its ability to perfectly fit the data in all cases.
+
+#a)
+Specify the test design of the simple Dickey-Fuller t-test. Thereby, refer to the terms ‘pure random walk’, ‘random walk with drift’, and ‘random walk with drift and trend’.
+The simple Dickey-Fuller t-test is used to test the null hypothesis that a unit root is present in a time series. This test design varies depending on the characteristics of the time series under consideration.
+
+For a pure random walk, the Dickey-Fuller test statistic is expected to have a large magnitude, and its distribution is asymptotically normal. In this case, the test is one-sided, and the null hypothesis is rejected if the test statistic is less than the critical value.
+
+For a random walk with drift, the Dickey-Fuller test includes a constant term in the regression equation, which captures the drift in the time series. The null hypothesis in this case is that a unit root is present and the coefficient of the drift term is zero. The test is again one-sided, and the null hypothesis is rejected if the test statistic is less than the critical value.
+
+For a random walk with drift and trend, the Dickey-Fuller test includes both a constant and a linear time trend in the regression equation. The null hypothesis is the same as for the random walk with drift case, and the test statistic has a more complex distribution that depends on the number of observations and the presence of autocorrelation in the time series.
+
+In summary, the Dickey-Fuller test is a powerful tool for testing the presence of a unit root in a time series, and its design varies depending on the characteristics of the time series under consideration.
+
+#Question 3

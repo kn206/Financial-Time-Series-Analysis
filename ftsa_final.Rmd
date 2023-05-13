@@ -3,8 +3,10 @@ title: "Financial Times Series Analysis Lab 1"
 author: "Kelvin Nyongesa"
 date: "2023-05-11"
 output:
-  word_document: default
+  html_document:
+    df_print: paged
   pdf_document: default
+  word_document: default
 ---
 #Reading the data and converting into a data frame
 ```{r}
