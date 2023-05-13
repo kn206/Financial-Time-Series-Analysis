@@ -2,6 +2,7 @@
 
 Financial Time series and Labs
 This a collection of financial time series labs designed to help learners explore and analyze financial data. Each lab is structured as a hands-on, practical exercise that allows learners to apply theoretical concepts to real-world financial problems. Topics covered in the labs may include time series modeling, forecasting, volatility analysis, risk management, and trading strategies. By completing the labs, learners will develop skills in data analysis, statistical modeling, and programming, and gain practical experience in working with financial data.
+
 Lab_1: Deal with Exploratory Data Analysis in FTSA 
 
 The analysis includes the computation of simple and log returns, which are commonly used measures for assessing the performance of financial investments. The EDA aims to provide insights into the underlying patterns and trends in the data, and to identify potential outliers and anomalies. The results of the analysis can be used to inform investment decisions and to guide further research in FTSA.
